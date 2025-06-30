@@ -58,10 +58,29 @@ export class OllamaAPIClient {
   async pullModel(modelName: string): Promise<boolean> {
     try {
       console.log(`🔄 Pulling Ollama model: ${modelName}`);
-      await this.client.post('/api/pull', { name: modelName });
-      console.log(`✅ Successfully pulled model: ${modelName}`);
-      return true;
+      const response = await this.client.post('/api/pull', { name: modelName });
+      
+      // Check if the response indicates success
+      if (response.status === 200) {
+        // Check the response body for errors
+        if (response.data && response.data.error) {
+          console.error(`❌ Failed to pull model ${modelName}: ${response.data.error}`);
+          return false;
+        }
+        console.log(`✅ Successfully pulled model: ${modelName}`);
+        return true;
+      } else {
+        console.error(`❌ Failed to pull model ${modelName}: HTTP ${response.status}`);
+        return false;
+      }
     } catch (error: any) {
+      // Check if it's a 404 or model not found error
+      if (error.response?.status === 404 || 
+          error.message.includes('not found') || 
+          error.message.includes('model not found')) {
+        console.error(`❌ Model ${modelName} not found in Ollama registry`);
+        return false;
+      }
       console.error(`❌ Failed to pull model ${modelName}: ${error.message}`);
       return false;
     }
@@ -77,7 +96,23 @@ export class OllamaAPIClient {
       
       // If not installed, try to pull it
       console.log(`📥 Model ${modelName} not found locally, attempting to pull...`);
-      return await this.pullModel(modelName);
+      const pullResult = await this.pullModel(modelName);
+      
+      if (!pullResult) {
+        console.error(`❌ Model ${modelName} could not be pulled (may not exist)`);
+        return false;
+      }
+      
+      // Verify the model was actually pulled by checking again
+      const updatedModels = await this.getInstalledModels();
+      const isNowAvailable = updatedModels.includes(modelName);
+      
+      if (!isNowAvailable) {
+        console.error(`❌ Model ${modelName} was not found after pull attempt`);
+        return false;
+      }
+      
+      return true;
     } catch (error: any) {
       console.error(`❌ Failed to ensure model availability: ${error.message}`);
       return false;
