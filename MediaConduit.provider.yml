@@ -1,0 +1,28 @@
+id: ollama-docker-provider
+name: Ollama Docker Provider
+description: A Docker-based provider for local LLM inference with dynamic model discovery
+version: 1.0.0
+author: MediaConduit
+type: local
+capabilities:
+  - text-to-text
+
+# Docker service configuration
+serviceUrl: https://github.com/MediaConduit/ollama-service
+serviceConfig:
+  dockerCompose: docker-compose.yml
+  serviceName: ollama
+  healthEndpoint: /api/tags
+  defaultBaseUrl: http://localhost:11434
+
+# Dynamic model discovery
+models:
+  # Models are discovered dynamically from Ollama API
+  # Common models include: llama2, codellama, mistral, neural-chat
+  dynamic: true
+  capabilities:
+    - text-to-text
+  parameters:
+    temperature: 0.7
+    maxTokens: 4096
+    topP: 0.9

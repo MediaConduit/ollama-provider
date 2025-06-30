@@ -1,0 +1,37 @@
+{
+  "name": "ollama-provider",
+  "version": "1.0.0",
+  "description": "MediaConduit provider for local Ollama LLM inference",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mediaconduit",
+    "provider",
+    "ollama",
+    "llm",
+    "local-ai",
+    "text-generation"
+  ],
+  "author": "MediaConduit",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MediaConduit/ollama-provider.git"
+  }
+}
