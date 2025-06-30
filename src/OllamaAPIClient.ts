@@ -67,7 +67,7 @@ export class OllamaAPIClient {
           console.error(`❌ Failed to pull model ${modelName}: ${response.data.error}`);
           return false;
         }
-        console.log(`✅ Successfully pulled model: ${modelName}`);
+        console.log(`🔄 Ollama accepted pull request for model: ${modelName}`);
         return true;
       } else {
         console.error(`❌ Failed to pull model ${modelName}: HTTP ${response.status}`);
