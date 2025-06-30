@@ -5,6 +5,7 @@ import {
   TextToTextOptions,
   Text
 } from './types';
+import { createGenerationPrompt } from '@mediaconduit/mediaconduit/src/media/utils/GenerationPromptHelper';
 
 export interface OllamaTextToTextConfig {
   apiClient: OllamaAPIClient;
@@ -59,14 +60,24 @@ export class OllamaTextToTextModel extends TextToTextModel {
 
     return Text.fromString(
       result.response, 
-      undefined, // language
-      undefined, // confidence
+      text.language || 'auto', // Preserve input language
+      1.0, // High confidence for successful generation
       {
         processingTime,
         model: this.modelId,
         provider: 'ollama',
         originalPrompt: text.content,
-      }
+        generation_prompt: createGenerationPrompt({
+          input: input, // RAW input object to preserve generation chain
+          options: options,
+          modelId: this.modelId,
+          modelName: `Ollama ${this.modelId}`,
+          provider: 'ollama',
+          transformationType: 'text-to-text',
+          processingTime
+        })
+      },
+      text.sourceAsset // Preserve source Asset reference
     );
   }
 
