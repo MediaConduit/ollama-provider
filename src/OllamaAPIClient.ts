@@ -58,17 +58,60 @@ export class OllamaAPIClient {
   async pullModel(modelName: string): Promise<boolean> {
     try {
       console.log(`🔄 Pulling Ollama model: ${modelName}`);
-      const response = await this.client.post('/api/pull', { name: modelName });
       
-      // Check if the response indicates success
+      // Configure axios to handle streaming response
+      const response = await this.client.post('/api/pull', { name: modelName }, {
+        responseType: 'text', // Get raw text to parse NDJSON manually
+        timeout: 300000 // 5 minutes timeout for pulling
+      });
+      
       if (response.status === 200) {
-        // Check the response body for errors
-        if (response.data && response.data.error) {
-          console.error(`❌ Failed to pull model ${modelName}: ${response.data.error}`);
+        // Parse the NDJSON (newline-delimited JSON) response
+        const lines = response.data.split('\n').filter((line: string) => line.trim());
+        let hasError = false;
+        let lastStatus = '';
+        
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            
+            if (json.error) {
+              console.error(`❌ Failed to pull model ${modelName}: ${json.error}`);
+              hasError = true;
+              break;
+            }
+            
+            if (json.status) {
+              lastStatus = json.status;
+              // Show progress for large models
+              if (json.total && json.completed) {
+                const percent = Math.round((json.completed / json.total) * 100);
+                console.log(`📥 ${modelName}: ${json.status} (${percent}%)`);
+              } else {
+                console.log(`📥 ${modelName}: ${json.status}`);
+              }
+            }
+          } catch (parseError) {
+            // Skip invalid JSON lines
+            continue;
+          }
+        }
+        
+        if (hasError) {
           return false;
         }
-        console.log(`🔄 Ollama accepted pull request for model: ${modelName}`);
-        return true;
+        
+        // Check if we got a success status
+        if (lastStatus && (lastStatus.includes('success') || lastStatus.includes('complete'))) {
+          console.log(`✅ Successfully pulled model: ${modelName}`);
+          return true;
+        } else if (lastStatus) {
+          console.log(`🔄 Ollama accepted pull request for model: ${modelName}`);
+          return true;
+        } else {
+          console.error(`❌ No status received for model ${modelName}`);
+          return false;
+        }
       } else {
         console.error(`❌ Failed to pull model ${modelName}: HTTP ${response.status}`);
         return false;
