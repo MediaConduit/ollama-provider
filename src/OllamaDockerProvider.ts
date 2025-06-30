@@ -4,7 +4,7 @@ import {
   MediaCapability,
   ProviderModel,
   ProviderConfig
-} from '@mediaconduit/src/media/types/provider';
+} from './types';
 import { OllamaAPIClient } from './OllamaAPIClient';
 
 export class OllamaDockerProvider implements MediaProvider {
@@ -139,12 +139,12 @@ export class OllamaDockerProvider implements MediaProvider {
     
     const { OllamaTextToTextModel } = await import('./OllamaTextToTextModel');
     return new OllamaTextToTextModel({ 
+      apiClient: this.apiClient, 
+      modelId,
       id: modelId,
       name: `Ollama ${modelId}`,
       description: `Ollama ${modelId} text generation model`,
-      capabilities: [MediaCapability.TEXT_TO_TEXT],
-      apiClient: this.apiClient, 
-      modelId 
+      capabilities: [MediaCapability.TEXT_TO_TEXT]
     });
   }
 

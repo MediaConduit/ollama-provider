@@ -29,7 +29,7 @@ async function testOllamaProvider() {
       console.log(`💚 Health status: ${health.status}`);
     }
   } catch (error) {
-    console.log(`⚠️  Provider not available (Ollama service not running): ${error.message}`);
+    console.log(`⚠️  Provider not available (Ollama service not running): ${(error as Error).message}`);
   }
   
   console.log('✅ Provider test completed!');

@@ -1,14 +1,18 @@
+import { TextRole } from '@mediaconduit/mediaconduit/src/media/assets/roles';
 import { OllamaAPIClient } from './OllamaAPIClient';
 import { 
   TextToTextModel,
-  ModelConfig,
   TextToTextOptions,
   Text
 } from './types';
 
-export interface OllamaTextToTextConfig extends ModelConfig {
+export interface OllamaTextToTextConfig {
   apiClient: OllamaAPIClient;
   modelId: string;
+  id: string;
+  name: string;
+  description: string;
+  capabilities: string[];
 }
 
 export class OllamaTextToTextModel extends TextToTextModel {
@@ -18,25 +22,28 @@ export class OllamaTextToTextModel extends TextToTextModel {
   constructor(config: OllamaTextToTextConfig) {
     // Pass the model configuration to the base class
     super({
-      id: config.modelId,
-      name: `Ollama ${config.modelId}`,
-      description: `Ollama ${config.modelId} text generation model`,
+      id: config.id,
+      name: config.name,
+      description: config.description,
+      version: '1.0.0',
+      provider: 'ollama',
       capabilities: config.capabilities || ['text-to-text'],
-      parameters: config.parameters || {}
+      inputTypes: ['text/plain'],
+      outputTypes: ['text/plain']
     });
     
     this.apiClient = config.apiClient;
     this.modelId = config.modelId;
   }
 
-  async transform(input: string | Text | string[] | Text[], options?: any): Promise<Text> {
+  async transform(input: string | TextRole | string[] | TextRole[], options?: TextToTextOptions): Promise<Text> {
     const start = Date.now();
     
     let text: Text;
     if (Array.isArray(input)) {
-      text = typeof input[0] === 'string' ? Text.fromString(input[0]) : input[0];
+      text = typeof input[0] === 'string' ? await Text.fromString(input[0]).asRole(Text) : await input[0].asRole(Text);
     } else {
-      text = typeof input === 'string' ? Text.fromString(input) : input;
+      text = typeof input === 'string' ? await Text.fromString(input).asRole(Text) : await input.asRole(Text);
     }
 
     if (!text.isValid()) {
@@ -50,12 +57,17 @@ export class OllamaTextToTextModel extends TextToTextModel {
     
     const processingTime = Date.now() - start;
 
-    return Text.fromString(result.response, {
-      processingTime,
-      model: this.modelId,
-      provider: 'ollama',
-      originalPrompt: text.content,
-    });
+    return Text.fromString(
+      result.response, 
+      undefined, // language
+      undefined, // confidence
+      {
+        processingTime,
+        model: this.modelId,
+        provider: 'ollama',
+        originalPrompt: text.content,
+      }
+    );
   }
 
   async generate(prompt: string, options?: any): Promise<Text> {
