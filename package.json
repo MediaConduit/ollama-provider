@@ -9,6 +9,8 @@
     "dev": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:provider": "npm run build && node dist/test-ollama-provider.js",
+    "test:provider:dev": "ts-node test-ollama-provider.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
