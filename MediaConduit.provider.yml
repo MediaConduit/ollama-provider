@@ -9,11 +9,7 @@ capabilities:
 
 # Docker service configuration
 serviceUrl: https://github.com/MediaConduit/ollama-service
-serviceConfig:
-  dockerCompose: docker-compose.yml
-  serviceName: ollama
-  healthEndpoint: /api/tags
-  defaultBaseUrl: http://localhost:11434
+
 
 # Dynamic model discovery
 models:
